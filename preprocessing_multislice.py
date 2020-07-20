@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# coding: utf-8
+
 import cv2
 import numpy as np
 import os
@@ -21,7 +24,7 @@ import time
 import copy
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    
+
 def create_paths(datapath):
     #     Create paths to all nested images
     imagepaths = []
@@ -37,7 +40,7 @@ def get_label(imagepath, csvpath):
     img_id = idpath[idpath.find('_I') + 2:-4]
     group = table.loc[table['Image Data ID'] == int(
         img_id)]["Group"].reset_index(drop=True)[0]
-    group_to_label = {'CN': 0, 'AD': 1, 'MCI': 2}
+    group_to_label = {'CN': 0, 'MCI': 2, 'AD': 1}
     label = group_to_label[group]
     return label
 
@@ -47,7 +50,6 @@ class ADNI(Dataset):
         Args:
             datapath (string): Directory with all the images.
             csvpath (string): Path to CSV
-            labels (list): labels to retrieve. 'CN': 0, 'AD': 1, MCI': 2
             transform (callable, optional): Optional transform to be applied on a sample.
         """
         all_imagepaths = create_paths(datapath)[:-1]
@@ -67,26 +69,32 @@ class ADNI(Dataset):
             idx = idx.tolist()
         imagepath = self.imagepaths[idx]
         label = get_label(imagepath, csvpath)
-    
 
-        imgdata = nib.load(imagepath).get_fdata()
-        #         temporary, for only one slice
-        imgdata = torch.from_numpy(cv2.resize(imgdata[imgdata.shape[0]//2, :, :], (imgsize, imgsize)))
         
-        imgdata = imgdata.reshape(1, imgsize, imgsize)
-    
+        #         create imgbatch with three different perspectives
+        imgbatch = []
+        
+        imgdata = nib.load(imagepath).get_fdata()
         if self.transform:
             imgdata = self.transform(imgdata)
             
-        sample = (imgdata, torch.tensor(label))
+        imgdata1 = cv2.resize(imgdata[imgdata.shape[0]//2, :, :], (imgsize, imgsize))
+        imgbatch.append(torch.from_numpy(imgdata1.reshape(-1, imgsize, imgsize)))
+
+        imgdata2 = cv2.resize(imgdata[:, imgdata.shape[0]//2, :], (imgsize, imgsize))
+        imgbatch.append(torch.from_numpy(imgdata2.reshape(-1, imgsize, imgsize)))
+
+        imgdata3 = cv2.resize(imgdata[:, :, imgdata.shape[0]//2], (imgsize, imgsize))
+        imgbatch.append(torch.from_numpy(imgdata3.reshape(-1, imgsize, imgsize)))
         
+        sample = (imgbatch, torch.tensor(label))
         return sample
-    
-    
+
+
 datapath = r"/media/swang/Windows/Users/swang/Downloads/ADNI1_Complete_1Yr_1.5T"
 csvpath = r"/media/swang/Windows/Users/swang/Downloads/ADNI1_Complete_1Yr_1.5T_7_08_2020.csv"
-dataset = ADNI(datapath, csvpath, labels = [0,1])
-#                transform = transforms.Normalize(mean=[192.1213], std=[215.9763]))
+dataset = ADNI(datapath, csvpath)
+#  transform = transforms.Normalize(mean=[192.1213], std=[215.9763])
 
 lengths = [
     int(len(dataset) * 0.8),
@@ -99,4 +107,5 @@ trainset, valset, testset = random_split(dataset, lengths)
 image_datasets = {'train': trainset, 'val': valset, 'test': testset}
 dataloaders = {x: DataLoader(image_datasets[x], batch_size=32, shuffle=True, num_workers=4)
               for x in ['train', 'val', 'test']}
-dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val', 'test']} 
+dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val', 'test']}  
+
