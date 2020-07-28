@@ -102,22 +102,7 @@ class ADNI(Dataset):
 datapath = r"/media/swang/Windows/Users/swang/Downloads/ADNI1_Complete_1Yr_1.5T"
 csvpath = r"/media/swang/Windows/Users/swang/Downloads/ADNI1_Complete_1Yr_1.5T_7_08_2020.csv"
 dataset = ADNI(datapath, csvpath, labels = [0,1])
-#  transform = transforms.Normalize(mean=[192.1213], std=[215.9763])
 
 data = [sample for sample in tqdm(dataset)]
-torch.save(data, 'olddataset.pt')
-
-
-lengths = [
-    int(len(dataset) * 0.8),
-    int(len(dataset) * 0.1),
-    int(len(dataset) * 0.1) + 1
-]
-
-
-trainset, valset, testset = random_split(dataset, lengths)
-image_datasets = {'train': trainset, 'val': valset, 'test': testset}
-dataloaders = {x: DataLoader(image_datasets[x], batch_size=32, shuffle=True, num_workers=4)
-              for x in ['train', 'val', 'test']}
-dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val', 'test']}  
+torch.save(data, '64dataset.pt')
 
