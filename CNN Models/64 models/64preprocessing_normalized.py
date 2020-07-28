@@ -104,5 +104,5 @@ csvpath = r"/media/swang/Windows/Users/swang/Downloads/ADNI1_Complete_1Yr_1.5T_7
 dataset = ADNI(datapath, csvpath, labels = [0,1], transform = transforms.Normalize(mean=[192.1213], std=[215.9763]))
 
 data = [sample for sample in tqdm(dataset)]
-torch.save(data, '64normalizeddataset.pt')
+torch.save(data, './../datasets/64normalizeddataset.pt')
 

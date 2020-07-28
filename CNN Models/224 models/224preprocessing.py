@@ -104,5 +104,5 @@ csvpath = r"/media/swang/Windows/Users/swang/Downloads/ADNI1_Complete_1Yr_1.5T_7
 dataset = ADNI(datapath, csvpath, labels = [0,1])
 
 data = [sample for sample in tqdm(dataset)]
-torch.save(data, 'datasets/224torchiodataset.pt')
+torch.save(data, '../../datasets/224dataset.pt')
 

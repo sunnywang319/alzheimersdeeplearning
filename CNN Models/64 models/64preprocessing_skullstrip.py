@@ -108,4 +108,4 @@ dataset = ADNI(datapath, csvpath, labels = [0,1])
 #  transform = transforms.Normalize(mean=[192.1213], std=[215.9763])
 
 data = [sample for sample in tqdm(dataset)]
-torch.save(data, '64skulldataset.pt')
+torch.save(data, './../datasets/64skulldataset.pt')
