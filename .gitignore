@@ -1,6 +1,8 @@
 **/datasets
 *.pyc
 *.pyo
-**/images
-gan/.ipynb_checkpoints/
-gan/saved_models/
+*.pt
+*.pth
+**/ganimages
+**/.ipynb_checkpoints
+**/saved_models
