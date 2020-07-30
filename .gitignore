@@ -3,5 +3,5 @@
 *.pyo
 **/images
 **/*saved_models
-.ipynb_checkpoints
+**/*.ipynb_checkpoints/ 
 
