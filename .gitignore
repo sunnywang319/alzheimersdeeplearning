@@ -2,6 +2,5 @@
 *.pyc
 *.pyo
 **/images
-**/*saved_models
-**/*.ipynb_checkpoints/ 
-
+/gan/.ipynb_checkpoints
+/gan/saved_models
