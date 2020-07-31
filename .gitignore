@@ -4,3 +4,5 @@
 *.pt
 *.pth
 **/ganimages
+**/.ipynb_checkpoints
+**/saved_models
