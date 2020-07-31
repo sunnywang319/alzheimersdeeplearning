@@ -83,7 +83,7 @@ class ADNI(Dataset):
         if self.transform:
             imgdata = self.transform(imgdata)
             
-        imgdata1 = cv2.resize(imgdata[imgdata.shape[0]//2, :, :], (imgsize, imgsize))
+        imgdata1 = cv2.resize(imgdata[96, :, :], (imgsize, imgsize))
         imgdata1 = torch.from_numpy(imgdata1)
         imgdata1 = torch.stack([imgdata1, imgdata1, imgdata1], 0)
         imgbatch.append(imgdata1.reshape(3, imgsize, imgsize))
@@ -105,7 +105,6 @@ class ADNI(Dataset):
 datapath = r"/media/swang/Windows/Users/swang/Downloads/ADNI1_Complete_1Yr_1.5T"
 csvpath = r"/media/swang/Windows/Users/swang/Downloads/ADNI1_Complete_1Yr_1.5T_7_08_2020.csv"
 dataset = ADNI(datapath, csvpath, labels = [0,1])
-#  transform = transforms.Normalize(mean=[192.1213], std=[215.9763])
 
 data = [sample for sample in tqdm(dataset)]
 torch.save(data, './../datasets/64skulldataset.pt')

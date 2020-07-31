@@ -56,19 +56,12 @@ landmarks = np.load('landmarks.npy')
 
 transform = Compose([
     RescaleIntensity((0, 1)),  
-    RandomMotion(),
-    RandomBiasField(),
-    RandomNoise(),
     HistogramStandardization({'mri': landmarks}),
     ZNormalization(masking_method=ZNormalization.mean),
     ToCanonical(),
     Resample((3, 3, 3)),
     CropOrPad((64, 64, 64)),
     RandomFlip(axes=(0,)),
-    OneOf({
-        RandomAffine(): 0.8,
-        RandomElasticDeformation(): 0.2,
-    }),
 ])
 
 

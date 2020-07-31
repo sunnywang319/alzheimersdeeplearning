@@ -77,10 +77,11 @@ class ADNI(Dataset):
         
         imgdata = nib.load(imagepath).get_fdata()
 
+
         if self.transform:
             imgdata = self.transform(imgdata)
             
-        imgdata1 = cv2.resize(imgdata[imgdata.shape[0]//2, :, :], (imgsize, imgsize))
+        imgdata1 = cv2.resize(imgdata[96, :, :], (imgsize, imgsize))
         imgdata1 = torch.from_numpy(imgdata1)
         imgdata1 = torch.stack([imgdata1, imgdata1, imgdata1], 0)
         imgbatch.append(imgdata1.reshape(3, imgsize, imgsize))
