@@ -100,7 +100,7 @@ class ADNI(Dataset):
         mask = prob > 0.5
         imgdata[~mask] = 0
          
-        imgdata1 = cv2.resize(imgdata[imgdata.shape[0]//2, :, :], (imgsize, imgsize))
+        imgdata1 = cv2.resize(imgdata[96, :, :], (imgsize, imgsize))
         imgdata1 = torch.from_numpy(imgdata1)
         imgdata1 = torch.stack([imgdata1, imgdata1, imgdata1], 0)
         imgbatch.append(imgdata1.reshape(3, imgsize, imgsize))
