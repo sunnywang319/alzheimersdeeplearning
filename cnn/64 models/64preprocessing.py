@@ -86,12 +86,12 @@ class ADNI(Dataset):
         imgdata1 = torch.stack([imgdata1, imgdata1, imgdata1], 0)
         imgbatch.append(imgdata1.reshape(3, imgsize, imgsize))
         
-        imgdata2 = cv2.resize(imgdata[:, imgdata.shape[0]//2, :], (imgsize, imgsize))
+        imgdata2 = cv2.resize(imgdata[:, imgdata.shape[1]//2, :], (imgsize, imgsize))
         imgdata2 = torch.from_numpy(imgdata2)
         imgdata2 = torch.stack([imgdata2, imgdata2, imgdata2], 0)
         imgbatch.append(imgdata2.reshape(3, imgsize, imgsize))
         
-        imgdata3 = cv2.resize(imgdata[:, :, imgdata.shape[0]//2], (imgsize, imgsize))
+        imgdata3 = cv2.resize(imgdata[:, :, imgdata.shape[2]//2], (imgsize, imgsize))
         imgdata3 = torch.from_numpy(imgdata3)
         imgdata3 = torch.stack([imgdata3, imgdata3, imgdata3], 0)
         imgbatch.append(imgdata3.reshape(3, imgsize, imgsize))
@@ -105,5 +105,5 @@ csvpath = r"/media/swang/Windows/Users/swang/Downloads/ADNI1_Complete_1Yr_1.5T_7
 dataset = ADNI(datapath, csvpath, labels = [0,1])
 
 data = [sample for sample in tqdm(dataset)]
-torch.save(data, './../datasets/64dataset.pt')
+torch.save(data, '../../datasets/64dataset.pt')
 
