@@ -19,7 +19,6 @@ import torchvision
 from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision.utils import make_grid, save_image
 from torchvision import transforms, datasets, models
-from train import train_model, train_loss, train_accuracy, val_loss, val_accuracy
 from torchsummary import summary
 import time
 import copy
@@ -144,7 +143,7 @@ class ADNI(Dataset):
             imgdata2 = torch.stack([imgdata2, imgdata2, imgdata2], 0)
             imgbatch.append(imgdata2.reshape(3, imgsize, imgsize))
 
-            imgdata3 = imgdata[:, :, 40]
+            imgdata3 = imgdata[:, :, imgsize//2]
             imgdata3 = torch.stack([imgdata3, imgdata3, imgdata3], 0)
             imgbatch.append(imgdata3.reshape(3, imgsize, imgsize))
 
