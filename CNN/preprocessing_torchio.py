@@ -1,28 +1,77 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import cv2
+# In[1]:
+
+
+import torchio
+from torchio import AFFINE, DATA, PATH, TYPE, STEM
 import numpy as np
-import os
-import sys
 import pandas as pd
 from random import shuffle
 from tqdm.notebook import tqdm
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import plot_confusion_matrix
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import lr_scheduler
 import torchvision
 from torch.utils.data import DataLoader, Dataset, random_split
+from torchvision.utils import make_grid, save_image
 from torchvision import transforms, datasets, models
-from PIL import Image
-import nibabel as nib
+from torchsummary import summary
 import time
 import copy
+import enum
+import random; random.seed(42)
+import warnings
+import tempfile
+import subprocess
+import multiprocessing
+from pathlib import Path
+import nibabel as nib
+from unet import UNet
+from scipy import stats
+import SimpleITK as sitk
+import matplotlib.pyplot as plt
+from IPython import display
+from tqdm.notebook import tqdm
+import os
+import sys
 from deepbrain import Extractor
+
+
+np.seterr(all='ignore') 
+
+from torchio.transforms import (
+    RandomFlip,
+    RandomAffine,
+    RandomElasticDeformation,
+    RandomNoise,
+    RandomMotion,
+    RandomBiasField,
+    RescaleIntensity,
+    Resample,
+    ToCanonical,
+    ZNormalization,
+    CropOrPad,
+    HistogramStandardization,
+    OneOf,
+    Compose,
+)
+
+landmarks = np.load('landmarks.npy')
+
+transform = Compose([
+    RescaleIntensity((0, 1)),  
+    HistogramStandardization({'mri': landmarks}),
+    ZNormalization(masking_method=ZNormalization.mean),
+    ToCanonical(),
+    Resample((1, 1, 1)),
+    CropOrPad((224, 224, 224)),
+
+])
+
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
@@ -46,7 +95,7 @@ def get_label(imagepath, csvpath):
     return label
 
 class ADNI(Dataset):
-    def __init__(self, datapath, csvpath, labels = [0, 1, 2], transform=None):
+    def __init__(self, datapath, csvpath, labels = [0, 1, 2]):
         """
         Args:
             datapath (string): Directory with all the images.
@@ -65,46 +114,49 @@ class ADNI(Dataset):
 
     def __getitem__(self, idx):
         #         Returns a tuple of the image and its group/label
-        imgsize = 64
+        imgsize = 224
 
         if torch.is_tensor(idx):
             idx = idx.tolist()
+            
         imagepath = self.imagepaths[idx]
         label = get_label(imagepath, csvpath)
-
         
-        #         create imgbatch with three different perspectives
-        imgbatch = []
         
-        imgdata = nib.load(imagepath).get_fdata()
-        prob = Extractor().run(imgdata) 
-        mask = prob > 0.5
-        imgdata[~mask] = 0
-        if self.transform:
-            imgdata = self.transform(imgdata)
+        try:
             
-        imgdata1 = cv2.resize(imgdata[96, :, :], (imgsize, imgsize))
-        imgdata1 = torch.from_numpy(imgdata1)
-        imgdata1 = torch.stack([imgdata1, imgdata1, imgdata1], 0)
-        imgbatch.append(imgdata1.reshape(3, imgsize, imgsize))
-        
-        imgdata2 = cv2.resize(imgdata[:, imgdata.shape[1]//2, :], (imgsize, imgsize))
-        imgdata2 = torch.from_numpy(imgdata2)
-        imgdata2 = torch.stack([imgdata2, imgdata2, imgdata2], 0)
-        imgbatch.append(imgdata2.reshape(3, imgsize, imgsize))
-        
-        imgdata3 = cv2.resize(imgdata[:, :, imgdata.shape[2]//2], (imgsize, imgsize))
-        imgdata3 = torch.from_numpy(imgdata3)
-        imgdata3 = torch.stack([imgdata3, imgdata3, imgdata3], 0)
-        imgbatch.append(imgdata3.reshape(3, imgsize, imgsize))
-        
-        sample = (imgbatch, torch.tensor(label))
-        return sample
+            subject = torchio.Subject({'mri': torchio.Image(imagepath, torchio.INTENSITY)})
+            transformed_subject = transform(subject)
 
+            #         create imgbatch with three different perspectives
+            imgbatch = []
+
+
+            imgdata = transformed_subject['mri'].data.reshape(imgsize, imgsize, imgsize).data
+
+
+            imgdata1 = imgdata[imgsize//2, :, :]
+            imgdata1 = torch.stack([imgdata1, imgdata1, imgdata1], 0)
+            imgbatch.append(imgdata1.reshape(3, imgsize, imgsize))
+
+            imgdata2 = imgdata[:, imgsize//2, :]
+            imgdata2 = torch.stack([imgdata2, imgdata2, imgdata2], 0)
+            imgbatch.append(imgdata2.reshape(3, imgsize, imgsize))
+
+            imgdata3 = imgdata[:, :, imgsize//2]
+            imgdata3 = torch.stack([imgdata3, imgdata3, imgdata3], 0)
+            imgbatch.append(imgdata3.reshape(3, imgsize, imgsize))
+
+            sample = (imgbatch, torch.tensor(label))
+            return sample
+        
+        except:
+            pass
 
 datapath = r"/media/swang/Windows/Users/swang/Downloads/ADNI1_Complete_1Yr_1.5T"
 csvpath = r"/media/swang/Windows/Users/swang/Downloads/ADNI1_Complete_1Yr_1.5T_7_08_2020.csv"
 dataset = ADNI(datapath, csvpath, labels = [0,1])
 
 data = [sample for sample in tqdm(dataset)]
-torch.save(data, '../../datasets/64skulldataset.pt')
+torch.save(data, '../../datasets/224torchiodataset.pt')
+
