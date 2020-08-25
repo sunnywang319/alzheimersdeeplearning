@@ -6,7 +6,7 @@ The full paper can be found [here.](https://sunnywang319.github.io/fullpaper.pdf
 - Clone the repo
 - Run all preprocessing files in the CNN folder (this will create a datasets folder)
 - Run **train** ipynb files in the GAN folder
-- Run**generate** ipynb files in the GAN folder
+- Run **generate** ipynb files in the GAN folder
 - Run all ipynb files in the CNN folder
 
 ## To do:
